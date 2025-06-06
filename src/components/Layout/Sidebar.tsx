@@ -1,44 +1,93 @@
 
 import { useState } from "react";
 import { 
-  BookOpen, 
-  Calendar, 
-  MapPin, 
-  BarChart3, 
-  Users, 
+  LayoutDashboard,
   FileText,
+  Calendar,
+  MapPin,
+  Users,
+  BarChart3,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { UserProfile } from "@/types/user";
 
 interface SidebarProps {
-  activeSection: string;
-  onSectionChange: (section: string) => void;
+  activeModule: string;
+  onModuleChange: (module: string) => void;
+  userProfile: UserProfile;
 }
 
-const menuItems = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "occurrences", label: "Ocorrências", icon: FileText },
-  { id: "events", label: "Eventos", icon: Calendar },
-  { id: "rooms", label: "Salas e Equipamentos", icon: MapPin },
-  { id: "students", label: "Alunos", icon: Users },
-  { id: "reports", label: "Relatórios", icon: BookOpen },
-];
-
-const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
+const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
+
+  const menuItems = [
+    { 
+      id: "dashboard", 
+      label: "Dashboard", 
+      icon: LayoutDashboard,
+      permission: "view_dashboard",
+      badge: null
+    },
+    { 
+      id: "occurrences", 
+      label: "Ocorrências", 
+      icon: AlertTriangle,
+      permission: "manage_occurrences",
+      badge: { count: 5, color: "bg-red-500" }
+    },
+    { 
+      id: "events", 
+      label: "Eventos", 
+      icon: Calendar,
+      permission: "manage_events",
+      badge: { count: 3, color: "bg-blue-500" }
+    },
+    { 
+      id: "resources", 
+      label: "Salas e Recursos", 
+      icon: MapPin,
+      permission: "manage_resources",
+      badge: null
+    },
+    { 
+      id: "students", 
+      label: "Alunos", 
+      icon: Users,
+      permission: "view_students",
+      badge: null
+    },
+    { 
+      id: "reports", 
+      label: "Relatórios", 
+      icon: BarChart3,
+      permission: "view_reports", 
+      badge: null
+    },
+  ];
+
+  const hasPermission = (permission: string) => {
+    return userProfile.permissions.includes(permission);
+  };
 
   return (
     <div className={cn(
-      "bg-gradient-to-b from-blue-600 to-blue-800 text-white transition-all duration-300",
-      collapsed ? "w-16" : "w-64"
+      "bg-gradient-to-b from-blue-800 to-blue-900 text-white transition-all duration-300 shadow-lg",
+      collapsed ? "w-16" : "w-72"
     )}>
-      <div className="p-4 border-b border-blue-500">
+      <div className="p-4 border-b border-blue-700">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <h2 className="text-lg font-semibold">Menu Principal</h2>
+            <div>
+              <h2 className="text-lg font-semibold">Menu Principal</h2>
+              <p className="text-xs text-blue-200 mt-1">
+                {userProfile.school.code} • {userProfile.schoolYear}
+              </p>
+            </div>
           )}
           <Button
             variant="ghost"
@@ -51,26 +100,58 @@ const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
         </div>
       </div>
       
-      <nav className="p-2">
+      <nav className="p-2 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const canAccess = hasPermission(item.permission);
+          
+          if (!canAccess) return null;
+          
           return (
             <Button
               key={item.id}
               variant="ghost"
               className={cn(
-                "w-full justify-start mb-1 text-white hover:bg-blue-700",
-                activeSection === item.id && "bg-blue-700",
-                collapsed && "px-2"
+                "w-full justify-start text-white hover:bg-blue-700 relative",
+                activeModule === item.id && "bg-blue-700 shadow-md",
+                collapsed && "px-2 justify-center"
               )}
-              onClick={() => onSectionChange(item.id)}
+              onClick={() => onModuleChange(item.id)}
             >
-              <Icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
-              {!collapsed && item.label}
+              <div className="flex items-center gap-3 w-full">
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {item.badge && (
+                      <Badge className={cn(
+                        "text-white text-xs px-2 py-0.5",
+                        item.badge.color
+                      )}>
+                        {item.badge.count}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </div>
             </Button>
           );
         })}
       </nav>
+
+      {!collapsed && (
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="bg-blue-700 rounded-lg p-3 text-center">
+            <FileText className="h-6 w-6 mx-auto mb-2 text-blue-200" />
+            <p className="text-xs text-blue-200 mb-2">
+              Sistema v1.0
+            </p>
+            <p className="text-xs text-blue-300">
+              Piloto - 3 meses
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

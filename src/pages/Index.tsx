@@ -2,93 +2,69 @@
 import { useState } from "react";
 import Header from "@/components/Layout/Header";
 import Sidebar from "@/components/Layout/Sidebar";
-import DashboardCards from "@/components/Dashboard/DashboardCards";
-import OccurrencesList from "@/components/Occurrences/OccurrencesList";
-import EventsCalendar from "@/components/Events/EventsCalendar";
-import RoomsManagement from "@/components/Rooms/RoomsManagement";
+import Dashboard from "@/components/Dashboard/Dashboard";
+import OccurrencesModule from "@/components/Occurrences/OccurrencesModule";
+import EventsModule from "@/components/Events/EventsModule";
+import ResourcesModule from "@/components/Resources/ResourcesModule";
+import StudentsModule from "@/components/Students/StudentsModule";
+import ReportsModule from "@/components/Reports/ReportsModule";
+import { UserProfile } from "@/types/user";
 
 const Index = () => {
-  const [activeSection, setActiveSection] = useState("dashboard");
+  const [activeModule, setActiveModule] = useState("dashboard");
 
-  const userProfile = {
-    name: "Maria Coordenadora",
-    role: "Coordenadora Acadêmica",
-    school: "Escola Estadual Dom Pedro II"
+  // Simulação de dados do usuário logado
+  const userProfile: UserProfile = {
+    id: "1",
+    name: "Maria Silva Coordenadora",
+    email: "maria.coordenadora@escola.edu.br",
+    role: "coordenador",
+    school: {
+      id: "school_001",
+      name: "Escola Estadual Dom Pedro II",
+      code: "31001234"
+    },
+    schoolYear: "2024",
+    permissions: [
+      "view_dashboard",
+      "manage_occurrences", 
+      "manage_events",
+      "manage_resources",
+      "view_reports",
+      "manage_users"
+    ]
   };
 
-  const renderContent = () => {
-    switch (activeSection) {
+  const renderActiveModule = () => {
+    switch (activeModule) {
       case "dashboard":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
-            <DashboardCards />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4">Ocorrências Recentes</h3>
-                <div className="space-y-3">
-                  <div className="border-l-4 border-red-500 pl-4">
-                    <p className="font-medium">João Silva - 9º A</p>
-                    <p className="text-sm text-gray-600">Comportamento inadequado</p>
-                  </div>
-                  <div className="border-l-4 border-yellow-500 pl-4">
-                    <p className="font-medium">Ana Costa - 8º B</p>
-                    <p className="text-sm text-gray-600">Dificuldades de aprendizagem</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4">Próximos Eventos</h3>
-                <div className="space-y-3">
-                  <div className="border-l-4 border-blue-500 pl-4">
-                    <p className="font-medium">Conselho de Classe - 9º Ano</p>
-                    <p className="text-sm text-gray-600">08/06/2024 às 14:00</p>
-                  </div>
-                  <div className="border-l-4 border-green-500 pl-4">
-                    <p className="font-medium">Feira de Ciências</p>
-                    <p className="text-sm text-gray-600">15/06/2024 às 08:00</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <Dashboard userProfile={userProfile} />;
       case "occurrences":
-        return <OccurrencesList />;
+        return <OccurrencesModule userProfile={userProfile} />;
       case "events":
-        return <EventsCalendar />;
-      case "rooms":
-        return <RoomsManagement />;
+        return <EventsModule userProfile={userProfile} />;
+      case "resources":
+        return <ResourcesModule userProfile={userProfile} />;
       case "students":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestão de Alunos</h2>
-            <div className="bg-white rounded-lg shadow p-6">
-              <p className="text-gray-600">Módulo de gestão de alunos em desenvolvimento...</p>
-            </div>
-          </div>
-        );
+        return <StudentsModule userProfile={userProfile} />;
       case "reports":
-        return (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Relatórios</h2>
-            <div className="bg-white rounded-lg shadow p-6">
-              <p className="text-gray-600">Módulo de relatórios em desenvolvimento...</p>
-            </div>
-          </div>
-        );
+        return <ReportsModule userProfile={userProfile} />;
       default:
-        return <DashboardCards />;
+        return <Dashboard userProfile={userProfile} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header userProfile={userProfile} />
-      <div className="flex">
-        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-        <main className="flex-1 p-6">
-          {renderContent()}
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar 
+        activeModule={activeModule} 
+        onModuleChange={setActiveModule}
+        userProfile={userProfile}
+      />
+      <div className="flex-1 flex flex-col">
+        <Header userProfile={userProfile} />
+        <main className="flex-1 p-6 overflow-auto">
+          {renderActiveModule()}
         </main>
       </div>
     </div>
