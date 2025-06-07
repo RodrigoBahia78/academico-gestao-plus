@@ -47,6 +47,13 @@ const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) =>
       permission: "manage_events",
       badge: { count: 3, color: "bg-blue-500" }
     },
+    {
+      id: "calendar",
+      label: "Calendário",
+      icon: Calendar,
+      permission: "view_calendar", // Defina uma permissão apropriada
+      badge: null
+    },
     { 
       id: "resources", 
       label: "Salas e Recursos", 
@@ -139,19 +146,7 @@ const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) =>
         })}
       </nav>
 
-      {!collapsed && (
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-blue-700 rounded-lg p-3 text-center">
-            <FileText className="h-6 w-6 mx-auto mb-2 text-blue-200" />
-            <p className="text-xs text-blue-200 mb-2">
-              Sistema v1.0
-            </p>
-            <p className="text-xs text-blue-300">
-              Piloto - 3 meses
-            </p>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

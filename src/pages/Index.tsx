@@ -32,6 +32,7 @@ const Index = () => {
       "manage_events",
       "manage_resources",
       "view_reports",
+      "view_calendar", // Defina uma permissão apropriada
       "manage_users"
     ]
   };
