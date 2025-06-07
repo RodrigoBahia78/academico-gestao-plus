@@ -8,6 +8,7 @@ import EventsModule from "@/components/Events/EventsModule";
 import ResourcesModule from "@/components/Resources/ResourcesModule";
 import StudentsModule from "@/components/Students/StudentsModule";
 import ReportsModule from "@/components/Reports/ReportsModule";
+import CalendarModule from "@/components/Calendar/CalendarModule";
 import { UserProfile } from "@/types/user";
 
 const Index = () => {
@@ -49,6 +50,8 @@ const Index = () => {
         return <StudentsModule userProfile={userProfile} />;
       case "reports":
         return <ReportsModule userProfile={userProfile} />;
+      case "calendar":
+        return <CalendarModule userProfile={userProfile} />;
       default:
         return <Dashboard userProfile={userProfile} />;
     }
