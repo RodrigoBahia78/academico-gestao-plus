@@ -9,16 +9,122 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission: string
+          role: Database["public"]["Enums"]["user_role_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission: string
+          role: Database["public"]["Enums"]["user_role_type"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["user_role_type"]
+        }
+        Relationships: []
+      }
+      schools: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role_type"]
+          school_id: string
+          school_year: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          role: Database["public"]["Enums"]["user_role_type"]
+          school_id: string
+          school_year?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role_type"]
+          school_id?: string
+          school_year?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_permissions: {
+        Args: { user_uuid?: string }
+        Returns: {
+          permission: string
+        }[]
+      }
+      has_permission: {
+        Args: { permission_name: string; user_uuid?: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role_type:
+        | "diretor"
+        | "coordenador_pedagogico"
+        | "professor"
+        | "inspetor"
+        | "tecnico_administrativo"
+        | "leitor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +239,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role_type: [
+        "diretor",
+        "coordenador_pedagogico",
+        "professor",
+        "inspetor",
+        "tecnico_administrativo",
+        "leitor",
+      ],
+    },
   },
 } as const

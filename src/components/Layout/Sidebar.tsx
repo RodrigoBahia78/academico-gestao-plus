@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { UserProfile } from "@/types/user";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface SidebarProps {
   activeModule: string;
@@ -24,6 +25,7 @@ interface SidebarProps {
 
 const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
+  const { hasPermission } = usePermissions(userProfile);
 
   const menuItems = [
     { 
@@ -51,7 +53,7 @@ const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) =>
       id: "calendar",
       label: "Calendário",
       icon: Calendar,
-      permission: "view_calendar", // Defina uma permissão apropriada
+      permission: "view_calendar",
       badge: null
     },
     { 
@@ -76,10 +78,6 @@ const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) =>
       badge: null
     },
   ];
-
-  const hasPermission = (permission: string) => {
-    return userProfile.permissions.includes(permission);
-  };
 
   return (
     <div className={cn(
@@ -145,8 +143,6 @@ const Sidebar = ({ activeModule, onModuleChange, userProfile }: SidebarProps) =>
           );
         })}
       </nav>
-
-      
     </div>
   );
 };

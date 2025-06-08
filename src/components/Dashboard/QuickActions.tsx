@@ -3,12 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Calendar, MapPin, Download, Upload } from "lucide-react";
 import { UserProfile } from "@/types/user";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface QuickActionsProps {
   userProfile: UserProfile;
 }
 
 const QuickActions = ({ userProfile }: QuickActionsProps) => {
+  const { hasPermission } = usePermissions(userProfile);
+
   const actions = [
     {
       title: "Nova Ocorrência",
@@ -43,7 +46,7 @@ const QuickActions = ({ userProfile }: QuickActionsProps) => {
       description: "Importar lista de alunos ou dados do sistema oficial",
       icon: Upload,
       color: "bg-orange-600 hover:bg-orange-700",
-      permission: "manage_users"
+      permission: "manage_user_accounts"
     },
     {
       title: "Relatório Mensal",
@@ -53,10 +56,6 @@ const QuickActions = ({ userProfile }: QuickActionsProps) => {
       permission: "view_reports"
     },
   ];
-
-  const hasPermission = (permission: string) => {
-    return userProfile.permissions.includes(permission);
-  };
 
   return (
     <Card>
