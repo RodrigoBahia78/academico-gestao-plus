@@ -11,6 +11,7 @@ import ReportsModule from "@/components/Reports/ReportsModule";
 import CalendarModule from "@/components/Calendar/CalendarModule";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
+import { getCurrentMockUser } from "@/data/mockUsers";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
@@ -29,34 +30,9 @@ const Index = () => {
     );
   }
 
-  // Se não há usuário ou perfil, mostrar dados mock para desenvolvimento
-  const mockUserProfile = {
-    id: "1",
-    user_id: "mock-user",
-    name: "Maria Silva Coordenadora",
-    email: "maria.coordenadora@escola.edu.br",
-    role: "coordenador_pedagogico" as const,
-    school: {
-      id: "school_001",
-      name: "Escola Estadual Dom Pedro II",
-      code: "31001234"
-    },
-    school_id: "school_001",
-    schoolYear: "2024",
-    active: true,
-    permissions: [
-      "view_dashboard",
-      "manage_occurrences", 
-      "manage_events",
-      "manage_resources",
-      "view_reports",
-      "view_calendar",
-      "view_students",
-      "manage_users"
-    ]
-  };
-
-  const currentUserProfile = userProfile || mockUserProfile;
+  // Se não há usuário ou perfil, usar dados mock para desenvolvimento
+  // Por padrão, usar o coordenador pedagógico para demonstração
+  const currentUserProfile = userProfile || getCurrentMockUser('coordenador');
 
   const renderActiveModule = () => {
     switch (activeModule) {

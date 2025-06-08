@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -11,9 +12,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import { Event } from './EventsModule';
 import { Badge } from "@/components/ui/badge";
 import { UserProfile } from '@/types/user';
+
+// Definir o tipo Event localmente se não estiver exportado
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  type: "pedagogico" | "institucional" | "avaliativo";
+  status: "planejado" | "confirmado" | "realizado" | "cancelado";
+  responsible: string;
+  participants?: string[];
+  createdAt: string;
+}
 
 interface EventDetailDialogProps {
   event: Event;
@@ -116,7 +131,6 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
               />
             </div>
 
-            {/* Change the role comparison to use the correct role name */}
             {(userProfile?.role === "coordenador_pedagogico" || userProfile?.role === "diretor") && isEditing && (
               <div>
                 <Label htmlFor="status">Status</Label>
