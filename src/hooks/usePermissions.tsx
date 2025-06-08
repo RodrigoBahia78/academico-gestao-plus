@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { UserProfile } from '@/types/user';
 
 export const usePermissions = (userProfile: UserProfile | null) => {
