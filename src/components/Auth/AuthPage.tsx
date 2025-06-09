@@ -24,7 +24,7 @@ const AuthPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('Tentando fazer login com:', loginData.email);
+    console.log('Iniciando processo de login para:', loginData.email);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -32,20 +32,34 @@ const AuthPage = () => {
         password: loginData.password,
       });
 
-      console.log('Resultado do login:', { data, error });
+      console.log('Resultado do login:', { 
+        user: data.user?.email, 
+        session: !!data.session,
+        error: error?.message 
+      });
 
       if (error) {
         console.error('Erro no login:', error);
+        
+        let errorMessage = "Erro no login";
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Email ou senha incorretos";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Email não confirmado. Verifique sua caixa de entrada.";
+        } else {
+          errorMessage = error.message;
+        }
+        
         toast({
           title: "Erro no login",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
-      } else {
-        console.log('Login bem-sucedido, usuário:', data.user?.email);
+      } else if (data.user) {
+        console.log('Login bem-sucedido para:', data.user.email);
         toast({
           title: "Login realizado com sucesso!",
-          description: "Redirecionando...",
+          description: "Carregando dados do usuário...",
         });
         // O redirecionamento será feito pelo useAuth
       }
@@ -146,6 +160,7 @@ const AuthPage = () => {
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     placeholder="seu@email.com"
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -158,6 +173,7 @@ const AuthPage = () => {
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       placeholder="Sua senha"
                       required
+                      disabled={isLoading}
                     />
                     <Button
                       type="button"
@@ -165,6 +181,7 @@ const AuthPage = () => {
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -194,6 +211,7 @@ const AuthPage = () => {
                     onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
                     placeholder="Seu nome completo"
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -205,6 +223,7 @@ const AuthPage = () => {
                     onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                     placeholder="seu@email.com"
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -217,6 +236,7 @@ const AuthPage = () => {
                     placeholder="Mínimo 6 caracteres"
                     required
                     minLength={6}
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -228,6 +248,7 @@ const AuthPage = () => {
                     onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                     placeholder="Confirme sua senha"
                     required
+                    disabled={isLoading}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
