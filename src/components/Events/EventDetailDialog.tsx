@@ -137,7 +137,7 @@ const EventDetailDialog = ({ event, open, onOpenChange, onUpdateEvent, userProfi
               />
             </div>
 
-            {(userProfile?.role === "coordenador" || userProfile?.role === "diretor") && isEditing && (
+            {(userProfile?.role === "coordenador_pedagogico" || userProfile?.role === "diretor") && isEditing && (
               <div>
                 <Label htmlFor="status">Status</Label>
                 <select
@@ -174,7 +174,7 @@ const EventDetailDialog = ({ event, open, onOpenChange, onUpdateEvent, userProfi
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Fechar
               </Button>
-              {(userProfile?.role === "coordenador" || userProfile?.role === "diretor") && (
+              {(userProfile?.role === "coordenador_pedagogico" || userProfile?.role === "diretor") && (
                 <Button onClick={() => setIsEditing(true)}>
                   Editar
                 </Button>
