@@ -14,38 +14,49 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { UserProfile } from '@/types/user';
-
-// Definir o tipo Event localmente se não estiver exportado
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  type: "pedagogico" | "institucional" | "avaliativo";
-  status: "planejado" | "confirmado" | "realizado" | "cancelado";
-  responsible: string;
-  participants?: string[];
-  createdAt: string;
-}
+import { Event, EventStatus } from '@/types/events';
 
 interface EventDetailDialogProps {
   event: Event;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userProfile: UserProfile | null;
+  onUpdateEvent: (event: Event) => void;
+  userProfile: UserProfile;
 }
 
-const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDetailDialogProps) => {
+const EventDetailDialog = ({ event, open, onOpenChange, onUpdateEvent, userProfile }: EventDetailDialogProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedEvent, setEditedEvent] = useState({ ...event });
 
   const handleSave = () => {
-    // Lógica para salvar as alterações do evento (simulação)
-    console.log("Evento salvo:", editedEvent);
+    onUpdateEvent(editedEvent);
     setIsEditing(false);
     onOpenChange(false);
+  };
+
+  const getTypeLabel = (type: string) => {
+    const labels = {
+      "reuniao": "Reunião",
+      "conselho": "Conselho",
+      "feira": "Feira",
+      "prova_especial": "Prova Especial",
+      "formatura": "Formatura",
+      "palestra": "Palestra",
+      "capacitacao": "Capacitação"
+    };
+    return labels[type as keyof typeof labels] || type;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      "planejado": "Planejado",
+      "confirmado": "Confirmado",
+      "em_andamento": "Em Andamento",
+      "realizado": "Realizado",
+      "cancelado": "Cancelado",
+      "adiado": "Adiado"
+    };
+    return labels[status as keyof typeof labels] || status;
   };
 
   return (
@@ -61,16 +72,11 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
         <div className="space-y-4">
           {/* Event type indicator */}
           <div className="flex items-center gap-2">
-            <Badge variant={event.type === "pedagogico" ? "default" : event.type === "institucional" ? "secondary" : "outline"}>
-              {event.type === "pedagogico" && "Pedagógico"}
-              {event.type === "institucional" && "Institucional"}
-              {event.type === "avaliativo" && "Avaliativo"}
+            <Badge variant="outline">
+              {getTypeLabel(event.type)}
             </Badge>
             <Badge variant={event.status === "realizado" ? "default" : event.status === "confirmado" ? "secondary" : "outline"}>
-              {event.status === "planejado" && "Planejado"}
-              {event.status === "confirmado" && "Confirmado"}
-              {event.status === "realizado" && "Realizado"}
-              {event.status === "cancelado" && "Cancelado"}
+              {getStatusLabel(event.status)}
             </Badge>
           </div>
 
@@ -103,8 +109,8 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
                 <Input
                   id="date"
                   type="date"
-                  value={editedEvent.date}
-                  onChange={(e) => setEditedEvent(prev => ({ ...prev, date: e.target.value }))}
+                  value={editedEvent.startDate}
+                  onChange={(e) => setEditedEvent(prev => ({ ...prev, startDate: e.target.value, date: e.target.value }))}
                   disabled={!isEditing}
                 />
               </div>
@@ -114,8 +120,8 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
                 <Input
                   id="time"
                   type="time"
-                  value={editedEvent.time}
-                  onChange={(e) => setEditedEvent(prev => ({ ...prev, time: e.target.value }))}
+                  value={editedEvent.startTime}
+                  onChange={(e) => setEditedEvent(prev => ({ ...prev, startTime: e.target.value, time: e.target.value }))}
                   disabled={!isEditing}
                 />
               </div>
@@ -131,19 +137,21 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
               />
             </div>
 
-            {(userProfile?.role === "coordenador_pedagogico" || userProfile?.role === "diretor") && isEditing && (
+            {(userProfile?.role === "coordenador" || userProfile?.role === "diretor") && isEditing && (
               <div>
                 <Label htmlFor="status">Status</Label>
                 <select
                   id="status"
                   value={editedEvent.status}
-                  onChange={(e) => setEditedEvent(prev => ({ ...prev, status: e.target.value as any }))}
+                  onChange={(e) => setEditedEvent(prev => ({ ...prev, status: e.target.value as EventStatus }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="planejado">Planejado</option>
                   <option value="confirmado">Confirmado</option>
+                  <option value="em_andamento">Em Andamento</option>
                   <option value="realizado">Realizado</option>
                   <option value="cancelado">Cancelado</option>
+                  <option value="adiado">Adiado</option>
                 </select>
               </div>
             )}
@@ -151,10 +159,11 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
 
           {/* Event metadata */}
           <div className="pt-4 border-t space-y-2 text-sm text-gray-600">
-            <p><strong>Responsável:</strong> {event.responsible}</p>
+            <p><strong>Organizador:</strong> {event.organizer.name}</p>
+            <p><strong>Responsável:</strong> {event.responsible.name}</p>
             <p><strong>Criado em:</strong> {new Date(event.createdAt).toLocaleDateString('pt-BR')}</p>
             {event.participants && event.participants.length > 0 && (
-              <p><strong>Participantes:</strong> {event.participants.join(', ')}</p>
+              <p><strong>Participantes:</strong> {event.participants.map(p => p.name).join(', ')}</p>
             )}
           </div>
         </div>
@@ -165,7 +174,7 @@ const EventDetailDialog = ({ event, open, onOpenChange, userProfile }: EventDeta
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Fechar
               </Button>
-              {(userProfile?.role === "coordenador_pedagogico" || userProfile?.role === "diretor") && (
+              {(userProfile?.role === "coordenador" || userProfile?.role === "diretor") && (
                 <Button onClick={() => setIsEditing(true)}>
                   Editar
                 </Button>

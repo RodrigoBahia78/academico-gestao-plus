@@ -58,8 +58,14 @@ const CreateEventDialog = ({ open, onOpenChange, onCreateEvent, userProfile }: C
     
     const event: Omit<Event, 'id' | 'createdAt'> = {
       ...formData,
+      date: formData.startDate, // Adicionar a propriedade date
+      time: formData.startTime, // Adicionar a propriedade time
       status: "planejado",
       organizer: {
+        id: userProfile.id,
+        name: userProfile.name
+      },
+      responsible: { // Adicionar a propriedade responsible
         id: userProfile.id,
         name: userProfile.name
       },
