@@ -24,12 +24,18 @@ export interface Event {
   description: string;
   type: EventType;
   status: EventStatus;
+  date: string; // Data do evento
+  time: string; // Horário do evento
   startDate: string;
   endDate: string;
   startTime: string;
   endTime: string;
   location: string;
   organizer: {
+    id: string;
+    name: string;
+  };
+  responsible: {
     id: string;
     name: string;
   };

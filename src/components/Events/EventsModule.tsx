@@ -23,12 +23,15 @@ const mockEvents: Event[] = [
     description: "Avaliação trimestral dos alunos do 9º ano com participação de todos os professores",
     type: "conselho",
     status: "confirmado",
+    date: "2024-06-08", // Propriedade adicionada
+    time: "14:00", // Propriedade adicionada
     startDate: "2024-06-08",
     endDate: "2024-06-08",
     startTime: "14:00",
     endTime: "16:00",
     location: "Sala de Reuniões",
     organizer: { id: "1", name: "Maria Silva Coordenadora" },
+    responsible: { id: "1", name: "Maria Silva Coordenadora" }, // Propriedade adicionada
     participants: [
       { id: "1", name: "João Professor", email: "joao@escola.edu.br", role: "Professor", status: "confirmado" },
       { id: "2", name: "Ana Orientadora", email: "ana@escola.edu.br", role: "Orientadora", status: "confirmado" }
@@ -48,12 +51,15 @@ const mockEvents: Event[] = [
     description: "Apresentação dos projetos científicos desenvolvidos pelos alunos durante o ano letivo",
     type: "feira",
     status: "planejado",
+    date: "2024-06-15", // Propriedade adicionada
+    time: "08:00", // Propriedade adicionada
     startDate: "2024-06-15",
     endDate: "2024-06-15",
     startTime: "08:00",
     endTime: "17:00",
     location: "Pátio Principal",
     organizer: { id: "1", name: "Maria Silva Coordenadora" },
+    responsible: { id: "3", name: "Carlos Professor" }, // Propriedade adicionada
     participants: [
       { id: "3", name: "Carlos Professor", email: "carlos@escola.edu.br", role: "Professor", status: "convidado" }
     ],

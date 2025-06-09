@@ -13,9 +13,10 @@ import { UserProfile } from "@/types/user";
 
 interface HeaderProps {
   userProfile: UserProfile;
+  onSignOut: () => Promise<void>;
 }
 
-const Header = ({ userProfile }: HeaderProps) => {
+const Header = ({ userProfile, onSignOut }: HeaderProps) => {
   const getRoleLabel = (role: string) => {
     const roles = {
       coordenador: "Coordenador(a) Acadêmico(a)",
@@ -91,7 +92,7 @@ const Header = ({ userProfile }: HeaderProps) => {
                 Dados da Escola
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-red-600" onClick={onSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair do Sistema
               </DropdownMenuItem>
