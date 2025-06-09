@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,57 +7,47 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, User, Clock } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { UserProfile } from "@/types/user";
+import { Occurrence } from "@/types/occurrences";
 
 interface OccurrenceDetailDialogProps {
-  occurrence: {
-    id: string;
-    title: string;
-    description: string;
-    type: "disciplinar" | "pedagogica" | "informativa";
-    severity: "leve" | "moderada" | "grave";
-    status: "em_analise" | "em_andamento" | "resolvida" | "arquivada";
-    student: string;
-    class: string;
-    date: string;
-    time: string;
-    responsible: string;
-    createdAt: string;
-    actions?: string[];
-    resolution?: string;
-  };
+  occurrence: Occurrence | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  userProfile: UserProfile;
+  onOccurrenceUpdated: () => void;
 }
 
-const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange }: OccurrenceDetailDialogProps) => {
-  const { userProfile } = useAuth();
+const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange, userProfile, onOccurrenceUpdated }: OccurrenceDetailDialogProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedOccurrence, setEditedOccurrence] = useState(occurrence);
 
+  if (!occurrence) return null;
+
   const canEdit = userProfile?.role === "coordenador_pedagogico" || 
                   userProfile?.role === "diretor" || 
-                  (occurrence.responsible === userProfile?.name && occurrence.status === "em_analise");
+                  (occurrence.reportedBy.id === userProfile?.id && occurrence.status === "aberta");
 
   const handleSave = () => {
     // Aqui você implementaria a lógica para salvar as alterações
     console.log("Salvando ocorrência:", editedOccurrence);
     setIsEditing(false);
-    // Após salvar no backend, você atualizaria a ocorrência no estado pai
+    onOccurrenceUpdated();
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "leve": return "bg-yellow-500";
-      case "moderada": return "bg-orange-500";
-      case "grave": return "bg-red-500";
-      default: return "bg-gray-500";
+      case "baixa": return "bg-blue-100 text-blue-800";
+      case "media": return "bg-yellow-100 text-yellow-800";
+      case "alta": return "bg-orange-100 text-orange-800";
+      case "critica": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "em_analise": return <Badge variant="outline">Em análise</Badge>;
+      case "aberta": return <Badge variant="destructive">Aberta</Badge>;
       case "em_andamento": return <Badge variant="secondary">Em andamento</Badge>;
       case "resolvida": return <Badge variant="default">Resolvida</Badge>;
       case "arquivada": return <Badge variant="outline" className="bg-gray-200 text-gray-700">Arquivada</Badge>;
@@ -75,29 +66,27 @@ const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange }: OccurrenceDe
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Occurrence type and severity indicators */}
+          {/* Indicadores de tipo e gravidade */}
           <div className="flex items-center gap-2">
             <Badge variant={occurrence.type === "disciplinar" ? "destructive" : occurrence.type === "pedagogica" ? "default" : "outline"}>
               {occurrence.type === "disciplinar" && "Disciplinar"}
               {occurrence.type === "pedagogica" && "Pedagógica"}
-              {occurrence.type === "informativa" && "Informativa"}
+              {occurrence.type === "administrativa" && "Administrativa"}
             </Badge>
-            <div className={`px-2 py-0.5 rounded-full text-xs text-white ${getSeverityColor(occurrence.severity)}`}>
-              {occurrence.severity === "leve" && "Leve"}
-              {occurrence.severity === "moderada" && "Moderada"}
-              {occurrence.severity === "grave" && "Grave"}
-            </div>
+            <Badge className={getSeverityColor(occurrence.severity)}>
+              {occurrence.severity}
+            </Badge>
             {getStatusBadge(occurrence.status)}
           </div>
 
-          {/* Occurrence details form/display */}
+          {/* Detalhes da ocorrência */}
           <div className="grid gap-4">
             <div>
               <Label htmlFor="title">Título</Label>
               <Input
                 id="title"
-                value={editedOccurrence.title}
-                onChange={(e) => setEditedOccurrence(prev => ({ ...prev, title: e.target.value }))}
+                value={isEditing ? editedOccurrence?.title || "" : occurrence.title}
+                onChange={(e) => setEditedOccurrence(prev => prev ? { ...prev, title: e.target.value } : null)}
                 disabled={!isEditing}
               />
             </div>
@@ -106,8 +95,8 @@ const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange }: OccurrenceDe
               <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
-                value={editedOccurrence.description}
-                onChange={(e) => setEditedOccurrence(prev => ({ ...prev, description: e.target.value }))}
+                value={isEditing ? editedOccurrence?.description || "" : occurrence.description}
+                onChange={(e) => setEditedOccurrence(prev => prev ? { ...prev, description: e.target.value } : null)}
                 disabled={!isEditing}
                 rows={3}
               />
@@ -118,14 +107,14 @@ const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange }: OccurrenceDe
                 <Label htmlFor="student">Aluno</Label>
                 <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-gray-50">
                   <User className="h-4 w-4 text-gray-500" />
-                  <span>{occurrence.student}</span>
+                  <span>{occurrence.student.name}</span>
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="class">Turma</Label>
                 <div className="border rounded-md px-3 py-2 bg-gray-50">
-                  {occurrence.class}
+                  {occurrence.student.class}
                 </div>
               </div>
             </div>
@@ -133,20 +122,17 @@ const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange }: OccurrenceDe
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date">Data</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={editedOccurrence.date}
-                  onChange={(e) => setEditedOccurrence(prev => ({ ...prev, date: e.target.value }))}
-                  disabled={!isEditing}
-                />
+                <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-gray-50">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span>{new Date(occurrence.dateCreated).toLocaleDateString('pt-BR')}</span>
+                </div>
               </div>
 
               <div>
                 <Label htmlFor="time">Horário</Label>
                 <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-gray-50">
                   <Clock className="h-4 w-4 text-gray-500" />
-                  <span>{occurrence.time}</span>
+                  <span>{new Date(occurrence.dateCreated).toLocaleTimeString('pt-BR')}</span>
                 </div>
               </div>
             </div>
@@ -156,50 +142,26 @@ const OccurrenceDetailDialog = ({ occurrence, open, onOpenChange }: OccurrenceDe
                 <Label htmlFor="status">Status</Label>
                 <select
                   id="status"
-                  value={editedOccurrence.status}
-                  onChange={(e) => setEditedOccurrence(prev => ({ ...prev, status: e.target.value as any }))}
+                  value={editedOccurrence?.status || occurrence.status}
+                  onChange={(e) => setEditedOccurrence(prev => prev ? { ...prev, status: e.target.value as any } : null)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
-                  <option value="em_analise">Em análise</option>
+                  <option value="aberta">Aberta</option>
                   <option value="em_andamento">Em andamento</option>
                   <option value="resolvida">Resolvida</option>
                   <option value="arquivada">Arquivada</option>
                 </select>
               </div>
             )}
-
-            {(occurrence.status === "em_andamento" || occurrence.status === "resolvida") && (
-              <div>
-                <Label htmlFor="actions">Ações tomadas</Label>
-                <Textarea
-                  id="actions"
-                  value={editedOccurrence.actions?.join("\n") || ""}
-                  onChange={(e) => setEditedOccurrence(prev => ({ ...prev, actions: e.target.value.split("\n") }))}
-                  disabled={!isEditing}
-                  rows={2}
-                  placeholder="Lista de ações tomadas, uma por linha"
-                />
-              </div>
-            )}
-
-            {occurrence.status === "resolvida" && (
-              <div>
-                <Label htmlFor="resolution">Resolução</Label>
-                <Textarea
-                  id="resolution"
-                  value={editedOccurrence.resolution || ""}
-                  onChange={(e) => setEditedOccurrence(prev => ({ ...prev, resolution: e.target.value }))}
-                  disabled={!isEditing}
-                  rows={2}
-                />
-              </div>
-            )}
           </div>
 
-          {/* Occurrence metadata */}
+          {/* Metadados da ocorrência */}
           <div className="pt-4 border-t space-y-2 text-sm text-gray-600">
-            <p><strong>Registrado por:</strong> {occurrence.responsible}</p>
-            <p><strong>Criado em:</strong> {new Date(occurrence.createdAt).toLocaleDateString('pt-BR')}</p>
+            <p><strong>Registrado por:</strong> {occurrence.reportedBy.name}</p>
+            <p><strong>Criado em:</strong> {new Date(occurrence.dateCreated).toLocaleDateString('pt-BR')}</p>
+            {occurrence.assignedTo && (
+              <p><strong>Atribuído a:</strong> {occurrence.assignedTo.name}</p>
+            )}
           </div>
         </div>
 

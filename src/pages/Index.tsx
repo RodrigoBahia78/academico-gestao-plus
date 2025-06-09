@@ -11,11 +11,10 @@ import ReportsModule from "@/components/Reports/ReportsModule";
 import CalendarModule from "@/components/Calendar/CalendarModule";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
-import { getCurrentMockUser } from "@/data/mockUsers";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
-  const { user, userProfile, loading } = useAuth();
+  const { userProfile, loading, signOut } = useAuth();
   const { hasPermission } = usePermissions(userProfile);
 
   // Mostrar loading enquanto carrega os dados do usuário
@@ -30,42 +29,43 @@ const Index = () => {
     );
   }
 
-  // Se não há usuário ou perfil, usar dados mock para desenvolvimento
-  // Por padrão, usar o coordenador pedagógico para demonstração
-  const currentUserProfile = userProfile || getCurrentMockUser('coordenador');
+  // Se não há perfil do usuário, não renderizar nada (useAuth já redireciona)
+  if (!userProfile) {
+    return null;
+  }
 
   const renderActiveModule = () => {
     switch (activeModule) {
       case "dashboard":
         return hasPermission("view_dashboard") ? 
-          <Dashboard userProfile={currentUserProfile} /> : 
+          <Dashboard userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para acessar o dashboard</div>;
       case "occurrences":
         return hasPermission("manage_occurrences") ? 
-          <OccurrencesModule userProfile={currentUserProfile} /> : 
+          <OccurrencesModule userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para gerenciar ocorrências</div>;
       case "events":
         return hasPermission("manage_events") ? 
-          <EventsModule userProfile={currentUserProfile} /> : 
+          <EventsModule userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para gerenciar eventos</div>;
       case "resources":
         return hasPermission("manage_resources") ? 
-          <ResourcesModule userProfile={currentUserProfile} /> : 
+          <ResourcesModule userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para gerenciar recursos</div>;
       case "students":
         return hasPermission("view_students") ? 
-          <StudentsModule userProfile={currentUserProfile} /> : 
+          <StudentsModule userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para visualizar alunos</div>;
       case "reports":
         return hasPermission("view_reports") ? 
-          <ReportsModule userProfile={currentUserProfile} /> : 
+          <ReportsModule userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para visualizar relatórios</div>;
       case "calendar":
         return hasPermission("view_calendar") ? 
-          <CalendarModule userProfile={currentUserProfile} /> : 
+          <CalendarModule userProfile={userProfile} /> : 
           <div className="p-6">Sem permissão para acessar o calendário</div>;
       default:
-        return <Dashboard userProfile={currentUserProfile} />;
+        return <Dashboard userProfile={userProfile} />;
     }
   };
 
@@ -74,10 +74,10 @@ const Index = () => {
       <Sidebar 
         activeModule={activeModule} 
         onModuleChange={setActiveModule}
-        userProfile={currentUserProfile}
+        userProfile={userProfile}
       />
       <div className="flex-1 flex flex-col">
-        <Header userProfile={currentUserProfile} />
+        <Header userProfile={userProfile} onSignOut={signOut} />
         <main className="flex-1 p-6 overflow-auto">
           {renderActiveModule()}
         </main>

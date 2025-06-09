@@ -1,44 +1,60 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/user';
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar usuário atual
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      if (user) {
-        await fetchUserProfile(user.id);
-      }
-      setLoading(false);
-    };
-
-    getCurrentUser();
-
-    // Listener para mudanças na autenticação
+    // Configurar listener de mudanças de autenticação PRIMEIRO
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
+          // Se está autenticado e está na página de auth, redirecionar para home
+          if (window.location.pathname === '/auth') {
+            navigate('/');
+          }
         } else {
           setUserProfile(null);
+          // Se não está autenticado e não está na página de auth, redirecionar
+          if (window.location.pathname !== '/auth') {
+            navigate('/auth');
+          }
         }
         setLoading(false);
       }
     );
 
+    // DEPOIS verificar sessão existente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
+      } else {
+        if (window.location.pathname !== '/auth') {
+          navigate('/auth');
+        }
+      }
+      setLoading(false);
+    });
+
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -90,10 +106,12 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    navigate('/auth');
   };
 
   return {
     user,
+    session,
     userProfile,
     loading,
     signOut,
