@@ -13,51 +13,86 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Configurar listener de mudanças de autenticação PRIMEIRO
+    let mounted = true;
+
+    // Configurar listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
+        
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Buscar perfil do usuário
           await fetchUserProfile(session.user.id);
-          // Se está autenticado e está na página de auth, redirecionar para home
+          
+          // Redirecionar para home apenas se estiver na página de auth
           if (window.location.pathname === '/auth') {
-            navigate('/');
+            console.log('Redirecionando para home após login');
+            navigate('/', { replace: true });
           }
         } else {
           setUserProfile(null);
-          // Se não está autenticado e não está na página de auth, redirecionar
+          // Redirecionar para auth apenas se não estiver na página de auth
           if (window.location.pathname !== '/auth') {
-            navigate('/auth');
+            console.log('Redirecionando para auth (sem sessão)');
+            navigate('/auth', { replace: true });
           }
         }
+        
         setLoading(false);
       }
     );
 
-    // DEPOIS verificar sessão existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          fetchUserProfile(session.user.id);
-        }, 0);
-      } else {
-        if (window.location.pathname !== '/auth') {
-          navigate('/auth');
+    // Verificar sessão existente
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Sessão inicial:', session?.user?.email, error);
+        
+        if (!mounted) return;
+
+        if (session?.user) {
+          setSession(session);
+          setUser(session.user);
+          await fetchUserProfile(session.user.id);
+          
+          // Se está autenticado e na página de auth, redirecionar
+          if (window.location.pathname === '/auth') {
+            console.log('Usuário já autenticado, redirecionando para home');
+            navigate('/', { replace: true });
+          }
+        } else {
+          // Se não está autenticado e não está na página de auth, redirecionar
+          if (window.location.pathname !== '/auth') {
+            console.log('Usuário não autenticado, redirecionando para auth');
+            navigate('/auth', { replace: true });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
         }
       }
-      setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Buscando perfil do usuário:', userId);
+      
       // Buscar perfil do usuário com escola
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
@@ -98,6 +133,7 @@ export const useAuth = () => {
         updated_at: profile.updated_at
       };
 
+      console.log('Perfil do usuário carregado:', userProfile.name, userProfile.role);
       setUserProfile(userProfile);
     } catch (error) {
       console.error('Erro ao buscar dados do usuário:', error);
@@ -105,8 +141,12 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
+    console.log('Fazendo logout');
     await supabase.auth.signOut();
-    navigate('/auth');
+    setSession(null);
+    setUser(null);
+    setUserProfile(null);
+    navigate('/auth', { replace: true });
   };
 
   return {

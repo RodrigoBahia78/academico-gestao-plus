@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,25 +24,33 @@ const AuthPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Tentando fazer login com:', loginData.email);
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
 
+      console.log('Resultado do login:', { data, error });
+
       if (error) {
+        console.error('Erro no login:', error);
         toast({
           title: "Erro no login",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        console.log('Login bem-sucedido, usuário:', data.user?.email);
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando...",
         });
+        // O redirecionamento será feito pelo useAuth
       }
     } catch (error) {
+      console.error('Erro inesperado no login:', error);
       toast({
         title: "Erro inesperado",
         description: "Tente novamente mais tarde",
